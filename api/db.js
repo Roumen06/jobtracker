@@ -84,7 +84,7 @@ Odpověz ve formátu:
 Pokud některá informace není v textu, vrať prázdný string "".`;
 
     const response = await cohere.chat({
-      model: 'command-r-plus',
+      model: 'command-r',
       message: prompt,
       temperature: 0.3,
     });
