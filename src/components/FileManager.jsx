@@ -12,7 +12,7 @@ function FileManager({ jobId }) {
 
   const fetchFiles = async () => {
     try {
-      const response = await fetch(`/api/jobs/${jobId}/files`)
+      const response = await fetch(`/api/files?jobId=${jobId}`)
       const data = await response.json()
       setFiles(data)
       setLoading(false)
@@ -38,7 +38,7 @@ function FileManager({ jobId }) {
       reader.onload = async (event) => {
         const base64 = event.target.result.split(',')[1]
 
-        const response = await fetch(`/api/jobs/${jobId}/files`, {
+        const response = await fetch(`/api/files?jobId=${jobId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -71,7 +71,7 @@ function FileManager({ jobId }) {
     if (!window.confirm('Opravdu chcete smazat tento soubor?')) return
 
     try {
-      await fetch(`/api/jobs/${jobId}/files?fileId=${fileId}`, {
+      await fetch(`/api/files?jobId=${jobId}&fileId=${fileId}`, {
         method: 'DELETE',
       })
       setFiles(files.filter(f => f.id !== fileId))
