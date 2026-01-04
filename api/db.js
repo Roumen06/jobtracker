@@ -71,7 +71,7 @@ export async function initDB() {
 
 export async function extractJobInfo(text) {
   try {
-    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     
     const prompt = `Analyzuj tento pracovní inzerát a extrahuj z něj informace ve formátu JSON. Vrať POUZE validní JSON bez dalšího textu.
 
