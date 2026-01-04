@@ -18,10 +18,18 @@ function App() {
     try {
       const response = await fetch('/api/jobs')
       const data = await response.json()
-      setJobs(data)
+      
+      // Check if data is an array, otherwise set empty array
+      if (Array.isArray(data)) {
+        setJobs(data)
+      } else {
+        console.error('API error:', data)
+        setJobs([])
+      }
       setLoading(false)
     } catch (error) {
       console.error('Error fetching jobs:', error)
+      setJobs([])
       setLoading(false)
     }
   }
