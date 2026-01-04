@@ -17,7 +17,8 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const { rows } = await sql`SELECT * FROM jobs WHERE id = ${id}`;
+      const jobId = parseInt(id, 10);
+      const { rows } = await sql`SELECT * FROM jobs WHERE id = ${jobId}`;
       if (rows.length === 0) {
         res.status(404).json({ error: 'Job not found' });
       } else {
@@ -29,6 +30,7 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'PUT') {
     try {
+      const jobId = parseInt(id, 10);
       const { title, company, location, salary, description, stage, cv_sent_date, notes, pros, cons, offered_salary } = req.body;
       
       const { rows } = await sql`
@@ -46,7 +48,7 @@ export default async function handler(req, res) {
           cons = ${cons}, 
           offered_salary = ${offered_salary}, 
           updated_at = CURRENT_TIMESTAMP
-        WHERE id = ${id}
+        WHERE id = ${jobId}
         RETURNING *
       `;
       
@@ -57,7 +59,8 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'DELETE') {
     try {
-      await sql`DELETE FROM jobs WHERE id = ${id}`;
+      const jobId = parseInt(id, 10);
+      await sql`DELETE FROM jobs WHERE id = ${jobId}`;
       res.status(200).json({ success: true });
     } catch (error) {
       console.error('Error deleting job:', error);
