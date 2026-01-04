@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: job-tracker
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    disk:
+      name: job-tracker-disk
+      mountPath: /opt/render/project/src/server
+      sizeGB: 1
