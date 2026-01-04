@@ -5,10 +5,14 @@ const Database = require('better-sqlite3');
 const path = require('path');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
+
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../dist')));
+}
 
 const db = new Database(path.join(__dirname, 'jobs.db'));
 
@@ -158,6 +162,12 @@ app.delete('/api/jobs/:id', (req, res) => {
   stmt.run(req.params.id);
   res.json({ success: true });
 });
+
+if (process.env.NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Server běží na http://localhost:${PORT}`);
