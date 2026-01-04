@@ -25,7 +25,7 @@ export default async function handler(req, res) {
   } else if (req.method === 'POST') {
     try {
       const { original_text } = req.body;
-      const extracted = extractJobInfo(original_text);
+      const extracted = await extractJobInfo(original_text);
       
       const { rows } = await sql`
         INSERT INTO jobs (title, company, location, salary, description, original_text, stage)

@@ -1,4 +1,7 @@
 import { sql } from '@vercel/postgres';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function initDB() {
   try {
@@ -38,54 +41,65 @@ export async function initDB() {
   }
 }
 
-export function extractJobInfo(text) {
-  const info = {
-    title: '',
-    company: '',
-    location: '',
-    salary: '',
-    description: ''
-  };
+export async function extractJobInfo(text) {
+  try {
+    const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+    
+    const prompt = `Analyzuj tento pracovní inzerát a extrahuj z něj informace ve formátu JSON. Vrať POUZE validní JSON bez dalšího textu.
 
-  const lines = text.split('\n').filter(line => line.trim());
-  
-  if (lines.length > 0) {
-    info.title = lines[0].trim();
-  }
-  
-  const locationPatterns = [
-    /(?:lokalita|místo|location):\s*(.+)/i,
-    /(?:Praha|Brno|Ostrava|Plzeň|Liberec|Olomouc|Hradec Králové|České Budějovice|Pardubice|Karlovy Vary|Zlín|Jihlava|Ústí nad Labem|Zlín)/i
-  ];
-  
-  for (const line of lines) {
-    for (const pattern of locationPatterns) {
-      const match = line.match(pattern);
-      if (match) {
-        info.location = match[1] || match[0];
-        break;
-      }
+Inzerát:
+${text}
+
+Odpověz ve formátu:
+{
+  "title": "název pozice",
+  "company": "název firmy",
+  "location": "místo/lokalita",
+  "salary": "platové rozpětí nebo mzda",
+  "description": "stručné shrnutí pozice v 1-2 větách"
+}
+
+Pokud některá informace není v textu, vrať prázdný string "". Odpověz POUZE JSON, nic jiného.`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const aiText = response.text();
+    
+    // Extract JSON from response (remove markdown code blocks if present)
+    let jsonText = aiText.trim();
+    if (jsonText.startsWith('```json')) {
+      jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+    } else if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/```\n?/g, '');
     }
-  }
+    
+    const extracted = JSON.parse(jsonText);
+    
+    return {
+      title: extracted.title || '',
+      company: extracted.company || '',
+      location: extracted.location || '',
+      salary: extracted.salary || '',
+      description: extracted.description || ''
+    };
+  } catch (error) {
+    console.error('AI extraction error:', error);
+    
+    // Fallback to simple extraction if AI fails
+    const info = {
+      title: '',
+      company: '',
+      location: '',
+      salary: '',
+      description: ''
+    };
 
-  const salaryPatterns = [
-    /(?:plat|mzda|salary|odměna):\s*(.+)/i,
-    /(\d+\s*(?:000)?\s*(?:-|až)\s*\d+\s*(?:000)?\s*(?:Kč|CZK|EUR))/i,
-    /(\d+\s*Kč)/i
-  ];
-  
-  for (const line of lines) {
-    for (const pattern of salaryPatterns) {
-      const match = line.match(pattern);
-      if (match) {
-        info.salary = match[1] || match[0];
-        break;
-      }
+    const lines = text.split('\n').filter(line => line.trim());
+    if (lines.length > 0) {
+      info.title = lines[0].trim();
+      info.description = lines.slice(1, 3).join(' ').substring(0, 200);
     }
+
+    return info;
   }
-
-  const descLines = lines.slice(1, 4).join(' ');
-  info.description = descLines.substring(0, 200);
-
-  return info;
 }
