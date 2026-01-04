@@ -1,7 +1,35 @@
-import { sql } from '@vercel/postgres';
+import pg from 'pg';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
+const { Pool } = pg;
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+// Create connection pool for Prisma Postgres
+const pool = new Pool({
+  connectionString: process.env.POSTGRES_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+// Helper function for tagged template queries
+export const sql = async (strings, ...values) => {
+  const client = await pool.connect();
+  try {
+    let query = strings[0];
+    const params = [];
+    
+    for (let i = 0; i < values.length; i++) {
+      params.push(values[i]);
+      query += `$${i + 1}` + strings[i + 1];
+    }
+    
+    const result = await client.query(query, params);
+    return { rows: result.rows };
+  } finally {
+    client.release();
+  }
+};
 
 export async function initDB() {
   try {

@@ -1,6 +1,5 @@
 import { put, list, del } from '@vercel/blob';
-import { sql } from '@vercel/postgres';
-import { initDB } from '../../db.js';
+import { sql, initDB } from '../../db.js';
 
 export const config = {
   api: {

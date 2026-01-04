@@ -1,5 +1,4 @@
-import { sql } from '@vercel/postgres';
-import { initDB, extractJobInfo } from '../db.js';
+import { sql, initDB, extractJobInfo } from '../db.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
