@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X, Save, Trash2, MapPin, Coins, Calendar, Building2, FileText, BarChart3, StickyNote, ThumbsUp, ThumbsDown, DollarSign } from 'lucide-react'
+import FileManager from './FileManager'
 
 const STAGES = [
   'Nový',
@@ -283,6 +284,8 @@ function JobDetailModal({ job, onClose, onUpdate, onDelete }) {
                 )}
               </div>
             </div>
+
+            <FileManager jobId={job.id} />
 
             {job.original_text && (
               <div>

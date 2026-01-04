@@ -21,6 +21,18 @@ export async function initDB() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    
+    await sql`
+      CREATE TABLE IF NOT EXISTS job_files (
+        id SERIAL PRIMARY KEY,
+        job_id INTEGER REFERENCES jobs(id) ON DELETE CASCADE,
+        file_name TEXT NOT NULL,
+        file_url TEXT NOT NULL,
+        file_type TEXT,
+        file_size INTEGER,
+        uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `;
   } catch (error) {
     console.error('Database initialization error:', error);
   }
