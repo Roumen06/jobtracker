@@ -1,8 +1,10 @@
 import pg from 'pg';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { CohereClient } from 'cohere-ai';
 
 const { Pool } = pg;
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const cohere = new CohereClient({
+  token: process.env.COHERE_API_KEY || '',
+});
 
 // Create connection pool for Prisma Postgres
 const pool = new Pool({
@@ -71,32 +73,26 @@ export async function initDB() {
 
 export async function extractJobInfo(text) {
   try {
-    const model = genAI.getGenerativeModel({ 
-      model: 'gemini-1.5-pro'
-    });
-    
-    const prompt = `Analyzuj tento pracovní inzerát a extrahuj z něj informace ve formátu JSON. Vrať POUZE validní JSON bez dalšího textu.
+    const prompt = `Analyzuj tento pracovní inzerát a extrahuj z něj informace. Odpověz POUZE validním JSON objektem bez dalšího textu nebo formátování.
 
 Inzerát:
 ${text}
 
 Odpověz ve formátu:
-{
-  "title": "název pozice",
-  "company": "název firmy",
-  "location": "místo/lokalita",
-  "salary": "platové rozpětí nebo mzda",
-  "description": "stručné shrnutí pozice v 1-2 větách"
-}
+{"title": "název pozice", "company": "název firmy", "location": "místo/lokalita", "salary": "platové rozpětí nebo mzda", "description": "stručné shrnutí pozice v 1-2 větách"}
 
-Pokud některá informace není v textu, vrať prázdný string "". Odpověz POUZE JSON, nic jiného.`;
+Pokud některá informace není v textu, vrať prázdný string "".`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const aiText = response.text();
+    const response = await cohere.chat({
+      model: 'command-r-plus',
+      message: prompt,
+      temperature: 0.3,
+    });
+
+    const aiText = response.text.trim();
     
     // Extract JSON from response (remove markdown code blocks if present)
-    let jsonText = aiText.trim();
+    let jsonText = aiText;
     if (jsonText.startsWith('```json')) {
       jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
     } else if (jsonText.startsWith('```')) {
