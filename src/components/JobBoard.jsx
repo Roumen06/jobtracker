@@ -29,7 +29,7 @@ function JobCard({ job, onClick }) {
       onClick={() => onClick(job)}
       className="bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
     >
-      <h3 className="font-semibold text-sm text-gray-900 mb-1 line-clamp-1">
+      <h3 className="font-semibold text-sm text-gray-900 mb-1 line-clamp-2">
         {job.title || 'Bez názvu'}
       </h3>
       
