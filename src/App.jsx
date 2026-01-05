@@ -108,7 +108,10 @@ function App() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Briefcase className="w-8 h-8 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Job Tracker</h1>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Job Tracker</h1>
+                <p className="text-xs text-gray-500">by Roman Velička</p>
+              </div>
             </div>
             <button
               onClick={() => setShowAddModal(true)}

@@ -6,7 +6,6 @@ import { cs } from 'date-fns/locale'
 const STAGES = [
   'Nový',
   'CV odesláno',
-  'Čeká na odpověď',
   'Pohovor naplánován',
   'Po pohovoru',
   'Nabídka',
@@ -17,7 +16,6 @@ const STAGES = [
 const STAGE_COLORS = {
   'Nový': 'bg-gray-100 text-gray-800 border-gray-300',
   'CV odesláno': 'bg-blue-100 text-blue-800 border-blue-300',
-  'Čeká na odpověď': 'bg-yellow-100 text-yellow-800 border-yellow-300',
   'Pohovor naplánován': 'bg-purple-100 text-purple-800 border-purple-300',
   'Po pohovoru': 'bg-indigo-100 text-indigo-800 border-indigo-300',
   'Nabídka': 'bg-green-100 text-green-800 border-green-300',
@@ -29,53 +27,15 @@ function JobCard({ job, onClick }) {
   return (
     <div
       onClick={() => onClick(job)}
-      className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
+      className="bg-white rounded-lg p-3 shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
     >
-      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">
+      <h3 className="font-semibold text-sm text-gray-900 mb-1 line-clamp-1">
         {job.title || 'Bez názvu'}
       </h3>
       
       {job.company && (
-        <p className="text-sm text-gray-600 mb-2">{job.company}</p>
+        <p className="text-xs text-gray-600">{job.company}</p>
       )}
-
-      <div className="space-y-1.5 mb-3">
-        {job.location && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin className="w-4 h-4" />
-            <span className="line-clamp-1">{job.location}</span>
-          </div>
-        )}
-        
-        {job.salary && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Coins className="w-4 h-4" />
-            <span className="line-clamp-1">{job.salary}</span>
-          </div>
-        )}
-
-        {job.cv_sent_date && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="w-4 h-4" />
-            <span>
-              CV: {format(new Date(job.cv_sent_date), 'd. M. yyyy', { locale: cs })}
-            </span>
-          </div>
-        )}
-      </div>
-
-      {job.description && (
-        <p className="text-xs text-gray-500 line-clamp-2 mb-3">
-          {job.description}
-        </p>
-      )}
-
-      <div className="flex items-center justify-between text-xs text-gray-400">
-        <span>
-          {format(new Date(job.created_at), 'd. M. yyyy', { locale: cs })}
-        </span>
-        <ChevronRight className="w-4 h-4" />
-      </div>
     </div>
   )
 }
@@ -115,7 +75,7 @@ function JobBoard({ jobs, onJobClick, onUpdateJob }) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
       {STAGES.map(stage => {
         const stageJobs = getJobsByStage(stage)
         const isDropTarget = isDragging && draggedJob?.stage !== stage
@@ -125,18 +85,18 @@ function JobBoard({ jobs, onJobClick, onUpdateJob }) {
             key={stage}
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, stage)}
-            className={`bg-gray-50 rounded-lg p-4 min-h-[500px] transition-colors ${
+            className={`bg-gray-50 rounded-lg p-3 min-h-[400px] transition-colors ${
               isDropTarget ? 'bg-blue-50 ring-2 ring-blue-300' : ''
             }`}
           >
-            <div className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-sm font-medium mb-4 border ${STAGE_COLORS[stage]}`}>
+            <div className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium mb-3 border ${STAGE_COLORS[stage]}`}>
               {stage}
-              <span className="ml-2 bg-white bg-opacity-50 px-2 py-0.5 rounded-full text-xs">
+              <span className="ml-1.5 bg-white bg-opacity-50 px-1.5 py-0.5 rounded-full text-xs">
                 {stageJobs.length}
               </span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2">
               {stageJobs.map(job => (
                 <div
                   key={job.id}
