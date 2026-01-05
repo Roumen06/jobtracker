@@ -1,5 +1,6 @@
 import { put, del } from '@vercel/blob';
 import { sql, initDB } from './db.js';
+import { requireAuth } from './auth-helper.js';
 
 export const config = {
   api: {
@@ -19,6 +20,9 @@ export default async function handler(req, res) {
     res.status(200).end();
     return;
   }
+
+  const user = requireAuth(req, res);
+  if (!user) return;
 
   await initDB();
 

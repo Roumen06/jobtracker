@@ -1,4 +1,5 @@
 import { sql, initDB, extractJobInfo } from '../db.js';
+import { requireAuth } from '../auth-helper.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -11,6 +12,9 @@ export default async function handler(req, res) {
     return;
   }
 
+  const user = requireAuth(req, res);
+  if (!user) return;
+
   await initDB();
 
   const { id } = req.query;
@@ -21,7 +25,7 @@ export default async function handler(req, res) {
 
     if (req.method === 'GET') {
       try {
-        const { rows } = await sql`SELECT * FROM jobs WHERE id = ${jobId}`;
+        const { rows } = await sql`SELECT * FROM jobs WHERE id = ${jobId} AND user_id = ${user.userId}`;
         if (rows.length === 0) {
           return res.status(404).json({ error: 'Job not found' });
         }
@@ -49,9 +53,13 @@ export default async function handler(req, res) {
             cons = ${cons}, 
             offered_salary = ${offered_salary}, 
             updated_at = CURRENT_TIMESTAMP
-          WHERE id = ${jobId}
+          WHERE id = ${jobId} AND user_id = ${user.userId}
           RETURNING *
         `;
+        
+        if (rows.length === 0) {
+          return res.status(404).json({ error: 'Job not found' });
+        }
         
         res.status(200).json(rows[0]);
       } catch (error) {
@@ -62,7 +70,7 @@ export default async function handler(req, res) {
       try {
         console.log('Attempting to delete job with ID:', jobId);
         
-        const result = await sql`DELETE FROM jobs WHERE id = ${jobId} RETURNING *`;
+        const result = await sql`DELETE FROM jobs WHERE id = ${jobId} AND user_id = ${user.userId} RETURNING *`;
         console.log('Delete query executed. Rows affected:', result.rows.length);
         
         if (result.rows.length === 0) {
@@ -83,7 +91,7 @@ export default async function handler(req, res) {
   // List all jobs (GET without ID)
   if (req.method === 'GET') {
     try {
-      const { rows } = await sql`SELECT * FROM jobs ORDER BY created_at DESC`;
+      const { rows } = await sql`SELECT * FROM jobs WHERE user_id = ${user.userId} ORDER BY created_at DESC`;
       res.status(200).json(rows);
     } catch (error) {
       console.error('Error fetching jobs:', error);
@@ -91,19 +99,19 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
-      const { original_text } = req.body;
-      const extracted = await extractJobInfo(original_text);
+      const { text } = req.body;
+      const jobInfo = await extractJobInfo(text);
       
       const { rows } = await sql`
-        INSERT INTO jobs (title, company, location, salary, description, original_text, stage)
-        VALUES (${extracted.title}, ${extracted.company}, ${extracted.location}, ${extracted.salary}, ${extracted.description}, ${original_text}, 'Nový')
+        INSERT INTO jobs (user_id, title, company, location, salary, description, original_text, stage)
+        VALUES (${user.userId}, ${jobInfo.title}, ${jobInfo.company}, ${jobInfo.location}, ${jobInfo.salary}, ${jobInfo.description}, ${text}, 'Nový')
         RETURNING *
       `;
       
       res.status(201).json(rows[0]);
     } catch (error) {
-      console.error('Error creating job:', error);
-      res.status(500).json({ error: 'Failed to create job' });
+      console.error('Error adding job:', error);
+      res.status(500).json({ error: 'Failed to add job' });
     }
   } else {
     res.status(405).json({ error: 'Method not allowed' });

@@ -38,7 +38,8 @@ export async function initDB() {
     await sql`
       CREATE TABLE IF NOT EXISTS jobs (
         id SERIAL PRIMARY KEY,
-        title TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        title TEXT,
         company TEXT,
         location TEXT,
         salary TEXT,
@@ -54,6 +55,13 @@ export async function initDB() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `;
+    
+    // Add user_id column if it doesn't exist (migration)
+    try {
+      await sql`ALTER TABLE jobs ADD COLUMN IF NOT EXISTS user_id TEXT NOT NULL DEFAULT 'anonymous'`;
+    } catch (e) {
+      // Column might already exist
+    }
     
     await sql`
       CREATE TABLE IF NOT EXISTS job_files (
