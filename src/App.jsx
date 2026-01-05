@@ -71,13 +71,24 @@ function App() {
   const handleDeleteJob = async (id) => {
     if (window.confirm('Opravdu chcete smazat tuto nabídku?')) {
       try {
-        await fetch(`/api/jobs/${id}`, {
+        console.log('Sending DELETE request for job ID:', id)
+        const response = await fetch(`/api/jobs/${id}`, {
           method: 'DELETE',
         })
-        setJobs(jobs.filter(job => job.id !== id))
-        setSelectedJob(null)
+        console.log('DELETE response status:', response.status)
+        const data = await response.json()
+        console.log('DELETE response data:', data)
+        
+        if (response.ok) {
+          setJobs(jobs.filter(job => job.id !== id))
+          setSelectedJob(null)
+        } else {
+          console.error('DELETE failed:', data)
+          alert('Chyba při mazání: ' + (data.error || 'Neznámá chyba'))
+        }
       } catch (error) {
         console.error('Error deleting job:', error)
+        alert('Chyba při mazání jobu')
       }
     }
   }
