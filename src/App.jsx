@@ -53,7 +53,7 @@ function App() {
 
   const handleUpdateJob = async (id, updates) => {
     try {
-      const response = await fetch(`/api/jobs/${id}`, {
+      const response = await fetch(`/api/jobs?id=${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ function App() {
     if (window.confirm('Opravdu chcete smazat tuto nabídku?')) {
       try {
         console.log('Sending DELETE request for job ID:', id)
-        const response = await fetch(`/api/jobs/${id}`, {
+        const response = await fetch(`/api/jobs?id=${id}`, {
           method: 'DELETE',
         })
         console.log('DELETE response status:', response.status)
