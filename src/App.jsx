@@ -30,9 +30,12 @@ function App() {
       if (response.ok) {
         const data = await response.json()
         setUser(data.user)
+      } else {
+        setLoading(false)
       }
     } catch (error) {
       console.error('Auth check failed:', error)
+      setLoading(false)
     } finally {
       setAuthLoading(false)
     }
@@ -40,7 +43,9 @@ function App() {
 
   const fetchJobs = async () => {
     try {
-      const response = await fetch('/api/jobs')
+      const response = await fetch('/api/jobs', {
+        credentials: 'include'
+      })
       const data = await response.json()
       
       // Check if data is an array, otherwise set empty array
@@ -58,14 +63,15 @@ function App() {
     }
   }
 
-  const handleAddJob = async (originalText) => {
+  const handleAddJob = async (text) => {
     try {
       const response = await fetch('/api/jobs', {
         method: 'POST',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ original_text: originalText }),
+        body: JSON.stringify({ text }),
       })
       const newJob = await response.json()
       setJobs([newJob, ...jobs])
@@ -79,6 +85,7 @@ function App() {
     try {
       const response = await fetch(`/api/jobs?id=${id}`, {
         method: 'PUT',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -98,6 +105,7 @@ function App() {
         console.log('Sending DELETE request for job ID:', id)
         const response = await fetch(`/api/jobs?id=${id}`, {
           method: 'DELETE',
+          credentials: 'include',
         })
         console.log('DELETE response status:', response.status)
         const data = await response.json()
